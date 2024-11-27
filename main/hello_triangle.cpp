@@ -6,6 +6,7 @@
 #include "engine.h"
 #include "file_utility.h"
 #include "scene.h"
+#include "texture_loader.h"
 
 namespace gpr5300
 {
@@ -20,10 +21,14 @@ namespace gpr5300
         GLuint fragmentShader_ = 0;
         GLuint program_ = 0;
         GLuint vao_ = 0;
+        unsigned int texture;
     };
 
     void HelloTriangle::Begin()
     {
+        TextureManager texture_manager;
+        texture = texture_manager.CreateTexture("data/textures/container.jpg");
+
         //Load shaders
         const auto vertexContent = LoadFile("data/shaders/hello_triangle/triangle.vert");
         const auto* ptr = vertexContent.data();
@@ -81,9 +86,11 @@ namespace gpr5300
     void HelloTriangle::Update(float dt)
     {
         //Draw program
-        glUseProgram(program_);
+      glUseProgram(program_);
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(vao_);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
 }
 int main(int argc, char** argv)
