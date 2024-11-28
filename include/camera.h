@@ -1,11 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
-
 
 enum Camera_Movement {
   FORWARD,
@@ -20,8 +18,6 @@ const float PITCH       =  0.0f;
 const float SPEED       =  2.5f;
 const float SENSITIVITY =  0.1f;
 const float ZOOM        =  45.0f;
-
-
 
 class Camera
 {
@@ -40,23 +36,22 @@ class Camera
   float MouseSensitivity;
   float Zoom;
 
+  // Projection parameters
+  float fov_;        // Field of View
+  float nearPlane_;  // Near clipping plane
+  float farPlane_;   // Far clipping plane
+  glm::mat4 projectionMatrix_;  // Projection matrix
 
-  Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+  Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH)
+      : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM),
+        fov_(ZOOM), nearPlane_(0.1f), farPlane_(100.0f)
   {
     Position = position;
     WorldUp = up;
     Yaw = yaw;
     Pitch = pitch;
     updateCameraVectors();
-  }
-
-  Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
-  {
-    Position = glm::vec3(posX, posY, posZ);
-    WorldUp = glm::vec3(upX, upY, upZ);
-    Yaw = yaw;
-    Pitch = pitch;
-    updateCameraVectors();
+    UpdateProjectionMatrix(45.0f);  // Initial projection matrix (assumes 45 degrees fov, aspect ratio will be updated later)
   }
 
   // returns the view matrix calculated using Euler Angles and the LookAt Matrix
@@ -65,7 +60,18 @@ class Camera
     return glm::lookAt(Position, Position + Front, Up);
   }
 
-  // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
+  glm::mat4 GetProjectionMatrix() const
+  {
+    return projectionMatrix_;
+  }
+
+  // Update projection matrix on resize
+  void UpdateProjectionMatrix(float aspectRatio)
+  {
+    // Create a perspective projection matrix based on the field of view and aspect ratio
+    projectionMatrix_ = glm::perspective(glm::radians(Zoom), aspectRatio, nearPlane_, farPlane_);
+  }
+
   void ProcessKeyboard(Camera_Movement direction, float deltaTime)
   {
     float velocity = MovementSpeed * deltaTime;
@@ -78,7 +84,6 @@ class Camera
     if (direction == RIGHT)
       Position += Right * velocity;
   }
-
 
   void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
   {
@@ -99,7 +104,6 @@ class Camera
     updateCameraVectors();
   }
 
-  // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
   void ProcessMouseScroll(float yoffset)
   {
     Zoom -= (float)yoffset;
@@ -123,5 +127,6 @@ class Camera
     Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     Up    = glm::normalize(glm::cross(Right, Front));
   }
+
 };
 #endif

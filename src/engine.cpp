@@ -69,6 +69,9 @@ void Engine::Run()
 {
   Begin();
   bool isOpen = true;
+  SDL_ShowCursor(SDL_FALSE);
+  SDL_SetRelativeMouseMode(SDL_TRUE);
+  bool isImGuiVisible = true;
 
   std::chrono::time_point<std::chrono::system_clock> clock = std::chrono::system_clock::now();
   while (isOpen)
@@ -100,7 +103,15 @@ void Engine::Run()
               glm::uvec2 newWindowSize;
               newWindowSize.x = event.window.data1;
               newWindowSize.y = event.window.data2;
-              //TODO do something with the new size
+
+              // Mettre à jour la taille du viewport OpenGL
+              glViewport(0, 0, newWindowSize.x, newWindowSize.y);
+
+              // Optionnel : mettre à jour la caméra si nécessaire
+              // Exemple pour une caméra utilisant une projection perspective
+              float aspectRatio = static_cast<float>(newWindowSize.x) / static_cast<float>(newWindowSize.y);
+              camera_.UpdateProjectionMatrix(aspectRatio);
+
               break;
             }
             default:
@@ -117,6 +128,25 @@ void Engine::Run()
             // Gérer le défilement de la souris
             HandleMouseScroll(event, camera_);
           break;
+
+          case SDL_KEYDOWN:
+            // Vérifier si la touche TAB est appuyée
+            if (event.key.keysym.sym == SDLK_TAB)
+            {
+              isImGuiVisible = !isImGuiVisible;  // Alterner l'état d'ImGui
+              if (isImGuiVisible)
+              {
+                // Afficher ImGui et désactiver le mode relatif de la souris
+                SDL_ShowCursor(SDL_FALSE);
+                SDL_SetRelativeMouseMode(SDL_TRUE);
+              }
+              else
+              {
+                // Cacher ImGui et activer le mode relatif de la souris
+                SDL_ShowCursor(SDL_TRUE);
+                SDL_SetRelativeMouseMode(SDL_FALSE);
+              }
+            }
         }
         default:
           break;
@@ -133,13 +163,13 @@ void Engine::Run()
     scene_->Update(dt.count());
 
     //Generate new ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplSDL2_NewFrame();
+      ImGui::NewFrame();
+      scene_->DrawImGui();
+      ImGui::Render();
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    scene_->DrawImGui();
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     SDL_GL_SwapWindow(window_);
   }

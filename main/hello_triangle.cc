@@ -14,6 +14,7 @@ class HelloTriangle final : public Scene {
   void Begin() override;
   void End() override;
   void Update(float dt) override;
+  void DrawImGui() override;
  private:
   GLuint vertexShader_ = 0;
   GLuint fragmentShader_ = 0;

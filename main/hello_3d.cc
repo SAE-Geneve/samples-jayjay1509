@@ -12,6 +12,7 @@
 #include "scene.h"
 #include "texture_loader.h"
 #include "camera.h"
+#include "imgui.h"
 
 namespace gpr5300 {
 class HelloTriangle final : public Scene {
@@ -19,6 +20,7 @@ class HelloTriangle final : public Scene {
   void Begin() override;
   void End() override;
   void Update(float dt) override;
+  void DrawImGui() override;
   HelloTriangle(Camera& camera) : Scene(camera), camera_(camera) {}
 
  private:
@@ -216,6 +218,13 @@ void HelloTriangle::Update(float dt) {
     glDrawArrays(GL_TRIANGLES, 0, 36);
   }
   glBindVertexArray(0);
+}
+
+void HelloTriangle::DrawImGui()
+{
+  ImGui::Begin("My Window"); // Start a new window
+  ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+  ImGui::End(); // End the window
 }
 
 }
