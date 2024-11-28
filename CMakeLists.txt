@@ -97,10 +97,12 @@ else()
 
 endif()
 
-file(GLOB MAIN_FILES main/*.cpp)
+file(GLOB MAIN_FILES main/*.cc)
 foreach(MAIN_FILE ${MAIN_FILES})
     get_filename_component(MAIN_NAME ${MAIN_FILE} NAME_WE)
     
-    add_executable(${MAIN_NAME} ${MAIN_FILE})
+    add_executable(${MAIN_NAME} ${MAIN_FILE}
+            main/hello_3d.cc
+            include/camera.h)
     target_link_libraries(${MAIN_NAME} PUBLIC Common) 
 endforeach()
