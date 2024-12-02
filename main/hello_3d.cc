@@ -30,7 +30,7 @@ class HelloTriangle final : public Scene {
   GLuint vao_ = 0;
   GLuint vbo_ = 0;
   GLuint ebo_ = 0;
-  unsigned int texture_;
+  GLuint textures_[11];
 
   float elapsedTime_ = 0.0f;
 
@@ -39,9 +39,22 @@ class HelloTriangle final : public Scene {
   Camera& camera_;
 };
 
+
 void HelloTriangle::Begin() {
   TextureManager texture_manager;
-  texture_ = texture_manager.CreateTexture("data/textures/container.jpg");
+
+  textures_[0] = texture_manager.CreateTexture("data/textures/output_frames/frame_0.jpg");
+  textures_[1] = texture_manager.CreateTexture("data/textures/output_frames/frame_1.jpg");
+  textures_[2] = texture_manager.CreateTexture("data/textures/output_frames/frame_2.jpg");
+  textures_[3] = texture_manager.CreateTexture("data/textures/output_frames/frame_3.jpg");
+  textures_[4] = texture_manager.CreateTexture("data/textures/output_frames/frame_4.jpg");
+  textures_[5] = texture_manager.CreateTexture("data/textures/output_frames/frame_5.jpg");
+  textures_[6] = texture_manager.CreateTexture("data/textures/output_frames/frame_6.jpg");
+  textures_[7] = texture_manager.CreateTexture("data/textures/output_frames/frame_7.jpg");
+  textures_[8] = texture_manager.CreateTexture("data/textures/output_frames/frame_8.jpg");
+  textures_[9] = texture_manager.CreateTexture("data/textures/output_frames/frame_9.jpg");
+  textures_[10] = texture_manager.CreateTexture("data/textures/output_frames/frame_10.jpg");
+  textures_[11] = texture_manager.CreateTexture("data/textures/output_frames/frame_11.jpg");
 
   camera_ = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
@@ -187,6 +200,8 @@ void HelloTriangle::Update(float dt) {
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the color and depth buffers
 
+  int textureIndex = static_cast<int>(elapsedTime_ * 10) % 11;
+
   // Create transformations
   glm::mat4 model = glm::mat4(1.0f);
   glm::mat4 view = camera_.GetViewMatrix(); // Matrice de vue à partir de la caméra
@@ -203,7 +218,7 @@ void HelloTriangle::Update(float dt) {
 
   // Draw program
   glUseProgram(program_);
-  glBindTexture(GL_TEXTURE_2D, texture_);
+  glBindTexture(GL_TEXTURE_2D, textures_[textureIndex]);
   glBindVertexArray(vao_);
 
   for (unsigned int i = 0; i < 10; i++) {
