@@ -10,6 +10,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(assimp REQUIRED)
 
 
 file(GLOB_RECURSE SHADER_FILES
@@ -85,7 +86,7 @@ file(GLOB_RECURSE DATA_FILES
 file(GLOB_RECURSE COMMON_FILES src/*.cpp src/*.cc include/*.h)
 add_library(Common STATIC ${COMMON_FILES} ${SHADER_FILES})
 target_include_directories(Common PUBLIC include/  ${Stb_INCLUDE_DIR})
-target_link_libraries(Common PUBLIC GLEW::GLEW glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui)
+target_link_libraries(Common PUBLIC GLEW::GLEW glm::glm SDL2::SDL2 SDL2::SDL2main imgui::imgui assimp::assimp)
 set_target_properties(Common PROPERTIES UNITY_BUILD ON)
 add_dependencies(Common shader_target data_target)
 
@@ -103,6 +104,12 @@ foreach(MAIN_FILE ${MAIN_FILES})
     
     add_executable(${MAIN_NAME} ${MAIN_FILE}
             main/hello_3d.cc
-            include/camera.h)
+            include/camera.h
+            src/mesh.cc
+            include/mesh.h
+            src/shader.cc
+            include/shader.h
+            src/model.cc
+            include/model.h)
     target_link_libraries(${MAIN_NAME} PUBLIC Common) 
 endforeach()

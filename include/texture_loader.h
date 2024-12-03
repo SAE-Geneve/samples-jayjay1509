@@ -3,13 +3,13 @@
 
 #include <string_view>
 
-//struct Image
-//{
-//  void* pixel = nullptr;
-//  int width = 0;
-//  int height = 0;
-//  int comp = 0; //stat that depends on the format -> .jpeg has 3 I think and stuff....
-//};
+struct Image
+{
+  void* pixel = nullptr;
+  int width = 0;
+  int height = 0;
+  int comp = 0; //stat that depends on the format -> .jpeg has 3 I think and stuff....
+};
 
 
 class TextureManager

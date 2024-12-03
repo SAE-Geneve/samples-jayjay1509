@@ -8,12 +8,12 @@ unsigned int TextureManager::CreateTexture(const char* path) {
   unsigned int texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
-// set the texture_ wrapping/filtering options (on the currently bound texture_ object)
+// set the texture wrapping/filtering options (on the currently bound texture object)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-// load and generate the texture_
+// load and generate the texture
   int width, height, nrChannels;
   unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
   if (data)
@@ -23,7 +23,7 @@ unsigned int TextureManager::CreateTexture(const char* path) {
   }
   else
   {
-    std::cout << "Failed to load texture_" << std::endl;
+    std::cout << "Failed to load texture" << std::endl;
   }
   stbi_image_free(data);
   return texture;

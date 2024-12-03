@@ -5,11 +5,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
 
-enum Camera_Movement {
-  FORWARD,
-  BACKWARD,
-  LEFT,
-  RIGHT
+enum Camera_Movement_ {
+  FORWARD_,
+  BACKWAR_,
+  LEFT_,
+  RIGHT_,
 };
 
 // Default camera values
@@ -72,16 +72,16 @@ class Camera
     projectionMatrix_ = glm::perspective(glm::radians(Zoom), aspectRatio, nearPlane_, farPlane_);
   }
 
-  void ProcessKeyboard(Camera_Movement direction, float deltaTime)
+  void ProcessKeyboard(Camera_Movement_ direction, float deltaTime)
   {
     float velocity = MovementSpeed * deltaTime;
-    if (direction == FORWARD)
+    if (direction == FORWARD_)
       Position += Front * velocity;
-    if (direction == BACKWARD)
+    if (direction == BACKWAR_)
       Position -= Front * velocity;
-    if (direction == LEFT)
+    if (direction == LEFT_)
       Position -= Right * velocity;
-    if (direction == RIGHT)
+    if (direction == RIGHT_)
       Position += Right * velocity;
   }
 

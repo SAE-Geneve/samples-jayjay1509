@@ -1,29 +1,49 @@
 #version 300 es
 precision highp float;
 
+//layout (location = 0) in vec3 aPos;
+//layout (location = 1) in vec3 aColor;
+//layout (location = 2) in vec2 aTexCoord;
+layout(location = 0) in vec3 position; // Vertex position
+layout(location = 1) in vec2 texCoord; // Texture coordinate
+layout(location = 2) in vec3 normal; // Normal vec
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
 out vec3 fragColor;
 out vec2 TexCoord;
+out vec3 Normal;
+out vec3 FragPos;
 
-vec2 positions[3] = vec2[](
-    vec2(0.0, -0.5),
-    vec2(0.5, 0.5),
-    vec2(-0.5, 0.5)
+//vec3 positions[4] = vec3[](
+//vec3(0.5, 0.5, 0.0),
+//vec3(0.5, -0.5, 0.0),
+//vec3(-0.5, -0.5, 0.0),
+//vec3(-0.5, 0.5, 0.0)
+//);
+
+vec3 colors[6] = vec3[](
+vec3(1.0, 1.0, 1.0),
+vec3(1.0, 1.0, 1.0),
+vec3(1.0, 1.0, 1.0),
+vec3(1.0, 1.0, 1.0),
+vec3(1.0, 1.0, 1.0),
+vec3(1.0, 1.0, 1.0)
 );
 
-vec3 colors[3] = vec3[](
-    vec3(1.0, 1.0, 1.0),
-    vec3(1.0, 1.0, 1.0),
-    vec3(1.0, 1.0, 1.0)
-);
-
-vec2 texCoords[3] = vec2[](
-    vec2(0.0, 1.0),  // lower-left corner
-    vec2(1.0, 1.0),  // lower-right corner
-    vec2(0.5, 0.0)   // bottom-center corner
-);
+//vec2 texCoords[4] = vec2[](
+//vec2(1.0, 1.0),
+//vec2(1.0, 0.0),
+//vec2(0.0, 0.0),
+//vec2(0.0, 1.0)
+//);
 
 void main() {
-    gl_Position = vec4(positions[gl_VertexID], 0.0, 1.0);
-    fragColor = colors[gl_VertexID];
-    TexCoord = texCoords[gl_VertexID];
+    gl_Position = projection * view * model * vec4(position, 1.0);
+    Normal = mat3(transpose(inverse(model))) * normal;
+    FragPos = vec3(model * vec4(position, 1.0));
+    fragColor = colors[gl_VertexID % 6];
+    TexCoord = texCoord;
 }

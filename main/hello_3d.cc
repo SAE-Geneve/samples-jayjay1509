@@ -13,34 +13,50 @@
 #include "texture_loader.h"
 #include "camera.h"
 #include "imgui.h"
+#include "free_camera.h"
+#include "shader.h"
+#include "model.h"
 
 namespace gpr5300 {
-class HelloTriangle final : public Scene {
+class Hello_3d final : public Scene {
  public:
   void Begin() override;
   void End() override;
   void Update(float dt) override;
+  void OnEvent(const SDL_Event& event, const float dt) override;
   void DrawImGui() override;
-  HelloTriangle(Camera& camera) : Scene(camera), camera_(camera) {}
+  //HelloTriangle(Camera& camera) : Scene(camera), camera_(camera) {}
 
  private:
-  GLuint vertexShader_ = 0;
-  GLuint fragmentShader_ = 0;
-  GLuint program_ = 0;
+//  GLuint vertexShader_ = 0;
+//  GLuint fragmentShader_ = 0;
+  //GLuint program_ = 0;
   GLuint vao_ = 0;
   GLuint vbo_ = 0;
   GLuint ebo_ = 0;
-  GLuint textures_[11];
+  GLuint textures_[32];
+
+  Model* ourModel = nullptr;
 
   float elapsedTime_ = 0.0f;
 
   glm::vec3 cubePositions[10] = {};
 
-  Camera& camera_;
+  FreeCamera* camera_ = nullptr;
+
+
+  Shader* ourShader = nullptr;
 };
 
 
-void HelloTriangle::Begin() {
+void Hello_3d::Begin() {
+
+  ourShader = new Shader("data/shaders/hello_3d/hello_3d.vert", "data/shaders/hello_3d/hello_3d.frag");
+  camera_ = new FreeCamera();
+
+  ourModel = new Model(("data/model/bag/backpack.obj"));
+
+
   TextureManager texture_manager;
 
   textures_[0] = texture_manager.CreateTexture("data/textures/output_frames/frame_0.jpg");
@@ -56,42 +72,6 @@ void HelloTriangle::Begin() {
   textures_[10] = texture_manager.CreateTexture("data/textures/output_frames/frame_10.jpg");
   textures_[11] = texture_manager.CreateTexture("data/textures/output_frames/frame_11.jpg");
 
-  camera_ = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-
-  //Load shaders
-  const auto vertexContent = LoadFile("data/shaders/hello_3d/hello_3d.vert");
-  const auto *ptr = vertexContent.data();
-  vertexShader_ = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader_, 1, &ptr, nullptr);
-  glCompileShader(vertexShader_);
-  //Check success status of shader compilation
-  GLint success;
-  glGetShaderiv(vertexShader_, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    std::cerr << "Error while loading vertex shader\n";
-  }
-  const auto fragmentContent = LoadFile("data/shaders/hello_3d/hello_3d.frag");
-  ptr = fragmentContent.data();
-  fragmentShader_ = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader_, 1, &ptr, nullptr);
-  glCompileShader(fragmentShader_);
-  //Check success status of shader compilation
-
-  glGetShaderiv(fragmentShader_, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    std::cerr << "Error while loading fragment shader\n";
-  }
-  //Load program/pipeline
-  program_ = glCreateProgram();
-  glAttachShader(program_, vertexShader_);
-  glAttachShader(program_, fragmentShader_);
-  glLinkProgram(program_);
-  //Check if shader program was linked correctly
-
-  glGetProgramiv(program_, GL_LINK_STATUS, &success);
-  if (!success) {
-    std::cerr << "Error while linking shader program\n";
-  }
 
   // configure global opengl state
   // -----------------------------
@@ -182,20 +162,29 @@ void HelloTriangle::Begin() {
 
   // Unbind VAO (optional)
   glBindVertexArray(0);
+
+
+  // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+  stbi_set_flip_vertically_on_load(true);
+
+  // configure global opengl state
+  // -----------------------------
+  glEnable(GL_DEPTH_TEST);
+
 }
 
-void HelloTriangle::End() {
+void Hello_3d::End() {
   //Unload program/pipeline
-  glDeleteProgram(program_);
+  //glDeleteProgram(program_);
 
-  glDeleteShader(vertexShader_);
-  glDeleteShader(fragmentShader_);
+//  glDeleteShader(vertexShader_);
+//  glDeleteShader(fragmentShader_);
 
   glDeleteVertexArrays(1, &vao_);
   glDeleteBuffers(1, &ebo_);
 }
 
-void HelloTriangle::Update(float dt) {
+void Hello_3d::Update(float dt) {
   elapsedTime_ += dt;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the color and depth buffers
@@ -203,52 +192,99 @@ void HelloTriangle::Update(float dt) {
   int textureIndex = static_cast<int>(elapsedTime_ * 10) % 11;
 
   // Create transformations
-  glm::mat4 model = glm::mat4(1.0f);
-  glm::mat4 view = camera_.GetViewMatrix(); // Matrice de vue à partir de la caméra
-  glm::mat4 projection = glm::perspective(glm::radians(camera_.Zoom), (float) 800 / (float) 600, 0.1f, 100.0f);
-  model = glm::rotate(model, elapsedTime_, glm::vec3(0.5f, 1.0f, 0.0f));
+  glm::mat4 model = glm::mat4(1.0f); // Initialize matrix to identity matrix first
+  glm::mat4 view = camera_->view();
+  glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)1280 / (float)720, 0.1f, 100.0f);
 
-  // retrieve the matrix uniform locations
-  unsigned int viewLoc = glGetUniformLocation(program_, "view");
-  unsigned int projectionLoc = glGetUniformLocation(program_, "projection");
+  // Set shader and uniform variables
+  ourShader->use();
+  ourShader->setFloat("someUniform", 1.0f);
 
-  // Pass transformations to shaders
+  // Pass view and projection matrices to shaders
+  unsigned int viewLoc = glGetUniformLocation(ourShader->ID, "view");
+  unsigned int projectionLoc = glGetUniformLocation(ourShader->ID, "projection");
   glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
   glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-  // Draw program
-  glUseProgram(program_);
   glBindTexture(GL_TEXTURE_2D, textures_[textureIndex]);
   glBindVertexArray(vao_);
 
+  // Loop for drawing cubes
   for (unsigned int i = 0; i < 10; i++) {
-    // Calculate the model matrix for each object and pass it to the shader before drawing
-    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::mat4(1.0f); // Reset model matrix for each cube
     model = glm::translate(model, cubePositions[i]);
     float angle = 20.0f * i;
     model = glm::rotate(model, glm::radians(angle) + elapsedTime_, glm::vec3(1.0f, 0.3f, 0.5f));
-    unsigned int modelLoc = glGetUniformLocation(program_, "model");
+
+    unsigned int modelLoc = glGetUniformLocation(ourShader->ID, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glDrawArrays(GL_TRIANGLES, 0, 36); // Draw the cube
   }
+
   glBindVertexArray(0);
+
+
+  glm::mat4 model_ = glm::mat4(1.0f);
+  model_ = glm::translate(model_, glm::vec3(0.0f, 0.0f, 0.0f));
+  model_ = glm::scale(model_, glm::vec3(1.0f, 1.0f, 1.0f));
+
+  ourShader->setMat4("model", model_);
+  ourModel->Draw(*ourShader);
 }
 
-void HelloTriangle::DrawImGui()
+
+void Hello_3d::OnEvent(const SDL_Event& event, const float dt)
+{
+  // Get keyboard state
+  const Uint8* state = SDL_GetKeyboardState(NULL);
+
+  // Camera controls
+  if (state[SDL_SCANCODE_W])
+  {
+    camera_->Move(FORWARD, dt);
+  }
+  if (state[SDL_SCANCODE_S])
+  {
+    camera_->Move(BACKWARD, dt);
+  }
+  if (state[SDL_SCANCODE_A])
+  {
+    camera_->Move(LEFT, dt);
+  }
+  if (state[SDL_SCANCODE_D])
+  {
+    camera_->Move(RIGHT, dt);
+  }
+  if (state[SDL_SCANCODE_SPACE])
+  {
+    camera_->Move(UP, dt);
+  }
+  if (state[SDL_SCANCODE_LCTRL])
+  {
+    camera_->Move(DOWN, dt);
+  }
+
+  int mouseX, mouseY;
+  SDL_GetRelativeMouseState(&mouseX, &mouseY);
+  camera_->Update(mouseX, mouseY);
+}
+
+void Hello_3d::DrawImGui()
 {
   ImGui::Begin("My Window"); // Start a new window
   ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
   ImGui::End(); // End the window
 }
-
 }
+
+
 
 int main(int argc, char** argv)
 {
   Camera camera;
-  gpr5300::HelloTriangle scene(camera);
-  gpr5300::Engine engine(&scene, camera);
+  gpr5300::Hello_3d scene;
+  gpr5300::Engine engine(&scene);
   engine.Run();
 
   return EXIT_SUCCESS;
