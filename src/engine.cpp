@@ -115,8 +115,8 @@ void Engine::Begin()
       SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
   );
   glRenderContext_ = SDL_GL_CreateContext(window_);
-  SDL_ShowCursor(SDL_DISABLE);
-  SDL_SetRelativeMouseMode(SDL_TRUE);
+  //SDL_ShowCursor(SDL_DISABLE);
+  //SDL_SetRelativeMouseMode(SDL_TRUE);
   //setting vsync
   SDL_GL_SetSwapInterval(1);
 

@@ -280,12 +280,12 @@ void Hello_3d::DrawImGui()
 
 
 
-int main(int argc, char** argv)
-{
-  Camera camera;
-  gpr5300::Hello_3d scene;
-  gpr5300::Engine engine(&scene);
-  engine.Run();
-
-  return EXIT_SUCCESS;
-}
+//int main(int argc, char** argv)
+//{
+//  Camera camera;
+//  gpr5300::Hello_3d scene;
+//  gpr5300::Engine engine(&scene);
+//  engine.Run();
+//
+//  return EXIT_SUCCESS;
+//}

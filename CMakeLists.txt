@@ -110,6 +110,8 @@ foreach(MAIN_FILE ${MAIN_FILES})
             src/shader.cc
             include/shader.h
             src/model.cc
-            include/model.h)
+            include/model.h
+            main/hello_cubeMap.cc
+            include/cude_map.h)
     target_link_libraries(${MAIN_NAME} PUBLIC Common) 
 endforeach()
