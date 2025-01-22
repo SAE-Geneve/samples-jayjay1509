@@ -371,12 +371,12 @@ void HelloLight_2::DrawImGui() {
 }
 }
 
-int main(int argc, char** argv)
-{
-  Camera camera;
-  gpr5300::HelloLight_2 scene;
-  gpr5300::Engine engine(&scene);
-  engine.Run();
-
-  return EXIT_SUCCESS;
-}
+//int main(int argc, char** argv)
+//{
+//  Camera camera;
+//  gpr5300::HelloLight_2 scene;
+//  gpr5300::Engine engine(&scene);
+//  engine.Run();
+//
+//  return EXIT_SUCCESS;
+//}

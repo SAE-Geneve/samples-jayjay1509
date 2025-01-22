@@ -112,6 +112,10 @@ foreach(MAIN_FILE ${MAIN_FILES})
             src/model.cc
             include/model.h
             main/hello_cubeMap.cc
-            include/cude_map.h)
+            include/cude_map.h
+            main/blending.cc
+            main/hello_shadowmap.cc
+            main/hello_hdr.cc
+    )
     target_link_libraries(${MAIN_NAME} PUBLIC Common) 
 endforeach()
