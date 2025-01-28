@@ -8,7 +8,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "engine.h"
-#include "file_utility.h"
 #include "free_camera.h"
 #include "global_utility.h"
 #include "model.h"
@@ -153,8 +152,7 @@ void HDR::Update(const float dt)
   renderCube();
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  // 2. now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
-  // --------------------------------------------------------------------------------------------------------------------------
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   hdr_->use();
   glActiveTexture(GL_TEXTURE0);
@@ -225,12 +223,12 @@ void HDR::DrawImGui()
 }
 
 
-int main(int argc, char* argv[])
-{
-  Camera camera;
-  gpr5300::HDR scene;
-  gpr5300::Engine engine(&scene);
-  engine.Run();
-
-  return EXIT_SUCCESS;
-}
+//int main(int argc, char** argv)
+//{
+//  Camera camera;
+//  gpr5300::HDR scene;
+//  gpr5300::Engine engine(&scene);
+//  engine.Run();
+//
+//  return EXIT_SUCCESS;
+//}

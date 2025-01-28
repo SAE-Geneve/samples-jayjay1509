@@ -15,7 +15,6 @@
 #include "scene.h"
 #include "shader.h"
 #include "texture_loader.h"
-#include "global_utility.h"
 
 namespace gpr5300
 {
@@ -30,6 +29,11 @@ class ShadowMap final : public Scene
 
 
  private:
+  Shader *shader_ = nullptr;
+  Shader *shader_depth_ = nullptr;
+  Shader *shader_quad_ = nullptr;
+
+
 
   GLuint plane_vao_ = 0;
   GLuint plane_vbo_ = 0;
@@ -46,10 +50,6 @@ class ShadowMap final : public Scene
   glm::vec3 light_position_ = glm::vec3(-2.0f, 4.0f, -1.0f);
 
   FreeCamera* camera_ = nullptr;
-
-  Shader *shader = nullptr;
-  Shader *shader_depth = nullptr;
-  Shader *shader_quad = nullptr;
 };
 
 void ShadowMap::Begin()
@@ -64,11 +64,13 @@ void ShadowMap::Begin()
   camera_ = new FreeCamera();
 
   //Build shaders
-  shader = new Shader("data/shaders/shadow_map/shadow_map.vert", "data/shaders/shadow_map/shadow_map.frag");
-  shader_depth = new Shader("data/shaders/shadow_map/shadow_depth.vert","data/shaders/shadow_map/shadow_depth.frag");
-  shader_quad= new Shader("data/shaders/shadow_map/debug_quad.vert", "data/shaders/shadow_map/debug_quad.frag");
+  shader_ = new Shader("data/shaders/hello_shadow_map/shadow_map.vert", "data/shaders/hello_shadow_map/shadow_map.frag");
+  shader_depth_ = new Shader("data/shaders/hello_shadow_map/shadow_depth.vert",
+                         "data/shaders/hello_shadow_map/shadow_depth.frag");
+  shader_quad_ = new Shader("data/shaders/hello_shadow_map/debug_quad.vert", "data/shaders/hello_shadow_map/debug_quad.frag");
 
-
+  // set up vertex data (and buffer(s)) and configure vertex attributes
+  // ------------------------------------------------------------------
   float planeVertices[] = {
       // positions            // normals         // texcoords
       25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,
@@ -123,23 +125,23 @@ void ShadowMap::Begin()
 
   // shader configuration
   // --------------------
-
-  shader->use();
-  shader->setInt("diffuseTexture",0);
-  shader->setInt("shadowMap", 1);
-  shader_quad->use();
-  shader_quad->setInt("depthMap", 0);
+  shader_->use();
+  shader_->SetInt("diffuseTexture", 0);
+  shader_->SetInt("shadowMap", 1);
+  shader_quad_->use();
+  shader_quad_->SetInt("depthMap", 0);
 }
 
 void ShadowMap::End()
 {
-//  shader.Delete();
-//  shader_quad_.Delete();
-//  shader_depth_.Delete();
+//  shader_->Delete();
+//  shader_quad_->Delete();
+//  shader_depth_->Delete();
 }
 
 void ShadowMap::Update(const float dt)
 {
+
   elapsedTime_ += dt;
 
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -154,15 +156,15 @@ void ShadowMap::Update(const float dt)
   lightView = glm::lookAt(light_position_, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
   lightSpaceMatrix = lightProjection * lightView;
   // render scene from light's point of view
-  shader_depth->use();
-  shader_depth->setMat4("lightSpaceMatrix", lightSpaceMatrix);
+  shader_depth_->use();
+  shader_depth_->SetMat4("lightSpaceMatrix", lightSpaceMatrix);
 
   glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
   glBindFramebuffer(GL_FRAMEBUFFER, depth_map_fbo_);
   glClear(GL_DEPTH_BUFFER_BIT);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, ground_texture_);
-  renderScene(*shader_depth,plane_vao_);
+  renderScene(*shader_depth_, plane_vao_);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // reset viewport
@@ -171,26 +173,26 @@ void ShadowMap::Update(const float dt)
 
   // 2. render scene as normal using the generated depth/shadow map
   // --------------------------------------------------------------
-  shader->use();
+  shader_->use();
   auto projection = glm::perspective(glm::radians(45.0f), (float)1280 / (float)720, 0.1f, 1000.0f);
   auto view = camera_->view();
-  shader->setMat4("projection", projection);
-  shader->setMat4("view", view);
+  shader_->SetMat4("projection", projection);
+  shader_->SetMat4("view", view);
   // set light uniforms
-  shader->SetVec3("viewPos", camera_->camera_position_);
-  shader->SetVec3("lightPos", light_position_);
-  shader->setMat4("lightSpaceMatrix", lightSpaceMatrix);
+  shader_->SetVec3("viewPos", camera_->camera_position_);
+  shader_->SetVec3("lightPos", light_position_);
+  shader_->SetMat4("lightSpaceMatrix", lightSpaceMatrix);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, ground_texture_);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, depth_map_texture_);
-  renderScene(*shader, plane_vao_);
+  renderScene(*shader_, plane_vao_);
 
   // render Depth map to quad for visual debugging
   // ---------------------------------------------
-  shader_quad->use();
-  shader_quad->SetFloat("near_plane", near_plane);
-  shader_quad->SetFloat("far_plane", far_plane);
+  shader_quad_->use();
+  shader_quad_->SetFloat("near_plane", near_plane);
+  shader_quad_->SetFloat("far_plane", far_plane);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, depth_map_texture_);
   //renderQuad();
@@ -198,8 +200,7 @@ void ShadowMap::Update(const float dt)
   glBindVertexArray(0);
 }
 
-void ShadowMap::OnEvent(const SDL_Event &event, const float dt)
-
+void ShadowMap::OnEvent(const SDL_Event& event, const float dt)
 {
   // Get keyboard state
   const Uint8* state = SDL_GetKeyboardState(NULL);
@@ -239,6 +240,8 @@ void ShadowMap::OnEvent(const SDL_Event &event, const float dt)
 }
 
 
+
+
 void ShadowMap::DrawImGui()
 {
   ImGui::Begin("My Window"); // Start a new window
@@ -255,8 +258,8 @@ void ShadowMap::DrawImGui()
 }
 }
 
-//
-//int main(int argc, char* argv[])
+
+//int main(int argc, char** argv)
 //{
 //  gpr5300::ShadowMap scene;
 //  gpr5300::Engine engine(&scene);

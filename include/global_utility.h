@@ -7,9 +7,9 @@
 
 // renderCube() renders a 1x1 3D cube in NDC.
 // -------------------------------------------------
-unsigned int cubeVAO = 0;
-unsigned int cubeVBO = 0;
-void renderCube()
+inline unsigned int cubeVAO = 0;
+inline unsigned int cubeVBO = 0;
+inline void renderCube()
 {
     // initialize (if necessary)
     if (cubeVAO == 0)
@@ -82,9 +82,9 @@ void renderCube()
 
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
-void renderQuad()
+inline unsigned int quadVAO = 0;
+inline unsigned int quadVBO;
+inline void renderQuad()
 {
     if (quadVAO == 0)
     {
@@ -203,7 +203,7 @@ inline void normal_renderQuad()
     glBindVertexArray(0);
 }
 
-inline void renderScene(const Shader &shader, GLuint planeVAO)
+inline void renderScene(Shader shader, GLuint planeVAO)
 {
     // floor
     glm::mat4 model = glm::mat4(1.0f);

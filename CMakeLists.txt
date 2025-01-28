@@ -116,6 +116,11 @@ foreach(MAIN_FILE ${MAIN_FILES})
             main/blending.cc
             main/hello_shadowmap.cc
             main/hello_hdr.cc
+            main/hello_bloom.cc
+            main/hello_depth.cc
+            main/hello_face.cc
+            main/hello_frame.cc
+            main/hello_normal.cc
     )
     target_link_libraries(${MAIN_NAME} PUBLIC Common) 
 endforeach()
